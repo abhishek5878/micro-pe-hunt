@@ -16,7 +16,7 @@ st.set_page_config(
     page_title="Pocket Fund | Acquisition Intelligence",
     page_icon="🏦",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # Optional favicon injection for hosts that request /favicon.ico
@@ -728,7 +728,7 @@ def _memory_card(note: str, match_deal: dict) -> str:
 # Results Dashboard Renderer
 # ─────────────────────────────────────────────────────────────────────────────
 
-def render_results(result: dict):
+def render_results(result: dict, simple_view: bool = False):
     val_data = result["val_data"]
     psych_data = result["psych_data"]
     reg_data = result["reg_data"]
@@ -851,43 +851,72 @@ def render_results(result: dict):
         unsafe_allow_html=True,
     )
 
-    # ── Messy Data Grounding: where signals came from ────────────────────────
-    primary_src = result["deal_input"].get("source_url") or result["deal_input"].get("url")
-    grounding_items: list[str] = []
-    if primary_src:
-        grounding_items.append("Listing page / marketplace profile")
-    if result.get("similar_deals"):
-        grounding_items.append("Vector memory of comparable India SME / micro-SaaS exits")
-    if psych_data.get("transcript_extracts"):
-        grounding_items.append("Founder call transcript (NLP-extracted signals)")
-    if result["deal_input"].get("crawl_markdown"):
-        grounding_items.append("Firecrawl web snapshot (site / social / bio)")
-    scrape_src = (result["deal_input"].get("scrape_source") or "").lower()
-    if "reddit" in scrape_src:
-        grounding_items.append("Reddit / community thread")
-    if not grounding_items:
-        grounding_items.append("Core listing only — no auxiliary sources available for this deal.")
+    # ── Messy Data Grounding (skip in simple view to reduce clutter) ───────────
+    if not simple_view:
+        primary_src = result["deal_input"].get("source_url") or result["deal_input"].get("url")
+        grounding_items: list[str] = []
+        if primary_src:
+            grounding_items.append("Listing page / marketplace profile")
+        if result.get("similar_deals"):
+            grounding_items.append("Vector memory of comparable India SME / micro-SaaS exits")
+        if psych_data.get("transcript_extracts"):
+            grounding_items.append("Founder call transcript (NLP-extracted signals)")
+        if result["deal_input"].get("crawl_markdown"):
+            grounding_items.append("Firecrawl web snapshot (site / social / bio)")
+        scrape_src = (result["deal_input"].get("scrape_source") or "").lower()
+        if "reddit" in scrape_src:
+            grounding_items.append("Reddit / community thread")
+        if not grounding_items:
+            grounding_items.append("Core listing only — no auxiliary sources available for this deal.")
 
-    st.markdown('<div class="panel-header">DATA GROUNDING — SOURCES USED</div>', unsafe_allow_html=True)
-    icon_map = {
-        "Listing page / marketplace profile": "📄",
-        "Vector memory of comparable India SME / micro-SaaS exits": "🧠",
-        "Founder call transcript (NLP-extracted signals)": "🎙",
-        "Firecrawl web snapshot (site / social / bio)": "🕷",
-        "Reddit / community thread": "👥",
-    }
-    nodes_html = ""
-    for item in grounding_items:
-        icon = icon_map.get(item, "🔗")
-        nodes_html += f"<div class='gm-node'>{icon} {item}</div>"
-    st.markdown(
-        "<div class='ic-panel'><div class='grounding-map'>"
-        "<div class='gm-center'>DEAL</div>"
-        "<div class='gm-spokes'>"
-        + nodes_html +
-        "</div></div></div>",
-        unsafe_allow_html=True,
-    )
+        st.markdown('<div class="panel-header">DATA GROUNDING — SOURCES USED</div>', unsafe_allow_html=True)
+        icon_map = {
+            "Listing page / marketplace profile": "📄",
+            "Vector memory of comparable India SME / micro-SaaS exits": "🧠",
+            "Founder call transcript (NLP-extracted signals)": "🎙",
+            "Firecrawl web snapshot (site / social / bio)": "🕷",
+            "Reddit / community thread": "👥",
+        }
+        nodes_html = ""
+        for item in grounding_items:
+            icon = icon_map.get(item, "🔗")
+            nodes_html += f"<div class='gm-node'>{icon} {item}</div>"
+        st.markdown(
+            "<div class='ic-panel'><div class='grounding-map'>"
+            "<div class='gm-center'>DEAL</div>"
+            "<div class='gm-spokes'>"
+            + nodes_html +
+            "</div></div></div>",
+            unsafe_allow_html=True,
+        )
+
+    if simple_view:
+        pb = playbook
+        st.markdown(
+            '<div class="ic-panel" style="font-size:14px;text-align:center;">'
+            '<span style="color:#10b981">Open ₹' + str(pb["opening_offer_cr"]) + 'Cr</span> · '
+            '<span style="color:#f59e0b">Target ₹' + str(pb["target_mid_cr"]) + 'Cr</span> · '
+            '<span style="color:#ef4444">Walk ₹' + str(pb["walk_away_cr"]) + 'Cr</span></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("Analyze another deal", key="analyze_another"):
+            if "analysis_result" in st.session_state:
+                del st.session_state["analysis_result"]
+            st.rerun()
+        with st.expander("📋 Full report — valuation, psychology, legal, strategy", expanded=False):
+            _render_full_report(result)
+        return
+
+    _render_full_report(result)
+
+
+def _render_full_report(result: dict):
+    """Full IC report: memory, tabs (valuation, psych, legal, strategy), agent log."""
+    val_data = result["val_data"]
+    psych_data = result["psych_data"]
+    reg_data = result["reg_data"]
+    playbook = result["playbook"]
+    call_prep = st.session_state.get("call_prep_mode", False)
 
     # ── Memory Context ────────────────────────────────────────────────────────
     if result["similar_deals"]:
@@ -1416,8 +1445,8 @@ with st.sidebar:
     st.markdown("## 🏦 POCKET FUND")
     st.markdown("**Acquisition Intelligence Layer**")
     st.markdown("---")
-    # Simple UI toggle for users who want a minimal workflow
-    simple_mode = st.checkbox("Simple UI (quick hunt)", value=False, help="Toggle a compact, easy-to-use hunting interface")
+    # Simple UI toggle — default ON for easier first-time use
+    simple_mode = st.checkbox("Simple mode (recommended)", value=True, help="One screen: find deals or analyze one URL. Turn off for full forms.")
     st.session_state.simple_mode = simple_mode
 
     # Call Prep mode: hide technical guts, surface only founder-ready context
@@ -1601,22 +1630,33 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# If simple mode enabled, render a compact quick-hunt UI and stop further complex UI
+# If simple mode enabled, render a compact UI: show result if any, else find deals or analyze one URL
 if st.session_state.get("simple_mode"):
+    # If we just ran "Analyze" and have a result, show it in simple view then stop
+    if st.session_state.get("analysis_result"):
+        render_results(st.session_state["analysis_result"], simple_view=True)
+        st.stop()
+
     st.markdown(
-        '<div style="font-family:JetBrains Mono;font-size:18px;font-weight:700;margin-bottom:8px">Quick Hunt — Simple Mode</div>',
+        '<div style="font-family:JetBrains Mono;font-size:18px;font-weight:700;margin-bottom:16px">Pocket Fund — Simple Mode</div>',
         unsafe_allow_html=True,
     )
+    st.markdown("**Find deals** or **analyze one listing** in one place.")
+
+    # ── Section 1: Quick Hunt ─────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("**🎯 Find deals**")
     col1, col2 = st.columns([3, 1])
     with col1:
-        s_max_price = st.number_input("Max Ask ($)", value=300000, step=5000, help="Cap on asking price")
-        s_min_score = st.slider("Min Score", 0, 100, 25)
-        s_india_only = st.checkbox("India only", value=False)
+        s_max_price = st.number_input("Max Ask ($)", value=300000, step=5000, help="Cap on asking price", key="s_max")
+        s_min_score = st.slider("Min Score", 0, 100, 25, key="s_min")
+        s_india_only = st.checkbox("India only", value=False, key="s_india")
     with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
         quick_btn = st.button("🎯 Quick Hunt", use_container_width=True, type="primary")
 
     if quick_btn:
-        with st.spinner("Running quick hunt across main sources..."):
+        with st.spinner("Finding deals..."):
             deals = hunt_live_deals(
                 use_acquire_auth=bool(os.environ.get("ACQUIRE_EMAIL")),
                 use_ef=False,
@@ -1627,26 +1667,97 @@ if st.session_state.get("simple_mode"):
                 use_side_projectors=True,
                 max_total=80,
             )
-
-        # Filter simple results
         filtered = [d for d in deals if d.get("score", 0) >= s_min_score]
         if s_india_only:
             filtered = [
-                d
-                for d in filtered
+                d for d in filtered
                 if d.get("country") == "India"
                 or re.search(r"\bindia\b", (d.get("description", "") + d.get("title", "")), re.IGNORECASE)
             ]
         if s_max_price > 0:
             filtered = [d for d in filtered if d.get("asking_price_usd") is None or d.get("asking_price_usd", 0) <= s_max_price]
-
-        st.markdown(f"**{len(filtered)} deals** — Showing top 40")
+        st.markdown(f"**{len(filtered)} deals** — top 40 below")
         for d in filtered[:40]:
             ask = f"${d['asking_price_usd']:,.0f}" if d.get("asking_price_usd") else "n/a"
             score = d.get("score", 0)
-            st.markdown(f'- **{score:.0f}/100** • {d.get("source","?")} • {ask} — [{d["title"]}]({d["url"]})', unsafe_allow_html=True)
-    else:
-        st.markdown('<div style="color:#94a3b8">Press Quick Hunt to collect deals (simple mode)</div>', unsafe_allow_html=True)
+            st.markdown(f'- **{score:.0f}/100** · {d.get("source","?")} · {ask} — [{d["title"]}]({d["url"]})', unsafe_allow_html=True)
+        st.stop()
+
+    # ── Section 2: Analyze one deal ───────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("**📋 Analyze one deal** — paste a listing URL and run full analysis")
+    a_col1, a_col2 = st.columns([4, 1])
+    with a_col1:
+        analyze_url = st.text_input(
+            "Listing URL",
+            placeholder="https://acquire.com/... or https://flippa.com/...",
+            key="analyze_url",
+            label_visibility="collapsed",
+        )
+    with a_col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        analyze_btn = st.button("Analyze", type="primary", use_container_width=True, key="analyze_btn")
+
+    if analyze_btn and analyze_url and analyze_url.strip():
+        url = analyze_url.strip()
+        with st.spinner("Scraping and analyzing..."):
+            scraped = {}
+            if os.environ.get("FIRECRAWL_API_KEY"):
+                try:
+                    scraped = scrape_listing_url(url)
+                except Exception:
+                    pass
+            if scraped.get("title"):
+                sh = (scraped.get("sector_hint") or "").lower()
+                sector_key = "saas" if "saas" in sh or "software" in sh else "manufacturing_general"
+                deal_input = {
+                    "title": scraped.get("title", "Deal"),
+                    "description": scraped.get("description", ""),
+                    "sector": sector_key,
+                    "state": scraped.get("state", "India") or "India",
+                    "revenue_cr": float(scraped.get("revenue_cr", 0) or 0),
+                    "ebitda_l": float(scraped.get("ebitda_l", 0) or 10),
+                    "is_family_run": bool(scraped.get("india_family_run", False)),
+                    "gst_registered": scraped.get("india_gst_registered", True),
+                    "udyam_registered": False,
+                    "digital_ready": True,
+                    "source_url": url,
+                    "url": url,
+                    "scrape_source": scraped.get("scrape_source", ""),
+                    "crawl_markdown": scraped.get("crawl_markdown"),
+                    "business_type": "SaaS" if "saas" in (scraped.get("sector_hint") or "").lower() else "MSME",
+                    "seller_name": scraped.get("seller_handle", ""),
+                    "transcript": "",
+                    "founder_signals": {
+                        "bio": scraped.get("seller_handle", ""),
+                        "exit_signals": scraped.get("exit_signals", ""),
+                    },
+                }
+            else:
+                deal_input = {
+                    "title": "Deal from URL",
+                    "description": f"Listing: {url}",
+                    "sector": "saas",
+                    "state": "India",
+                    "revenue_cr": 0.5,
+                    "ebitda_l": 15,
+                    "is_family_run": False,
+                    "gst_registered": True,
+                    "udyam_registered": False,
+                    "digital_ready": True,
+                    "source_url": url,
+                    "url": url,
+                    "business_type": "SaaS",
+                    "seller_name": "",
+                    "transcript": "",
+                    "founder_signals": {},
+                }
+            result = run_analysis_pipeline(deal_input, llm=st.session_state.get("llm"))
+            st.session_state["analysis_result"] = result
+        st.rerun()
+
+    if not quick_btn:
+        st.markdown('<div style="color:#94a3b8;font-size:13px;">Use **Quick Hunt** to find deals, or paste a URL above and click **Analyze**.</div>', unsafe_allow_html=True)
     st.stop()
 
 # ─────────────────────────────────────────────────────────────────────────────
