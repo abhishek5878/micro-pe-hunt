@@ -86,12 +86,12 @@ IC_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 html, body, [data-testid="stAppViewContainer"] {
-    background: #0b0f1a !important;
+    background: #0a0a0b !important;
     color: #e2e8f0 !important;
     font-family: 'Inter', -apple-system, sans-serif !important;
 }
 [data-testid="stSidebar"] {
-    background: #0d1120 !important;
+    background: #050608 !important;
     border-right: 1px solid #1e2d4a !important;
 }
 [data-testid="stSidebar"] * { color: #94a3b8 !important; }
@@ -137,7 +137,7 @@ html, body, [data-testid="stAppViewContainer"] {
 /* ── Metric Cards ── */
 .metric-grid { display:flex; gap:12px; margin:16px 0; flex-wrap:wrap; }
 .metric-card {
-    background:#0d1120; border:1px solid #1e3a5f; border-radius:8px;
+    background:#0a0a0b; border:1px solid #1e3a5f; border-radius:8px;
     padding:16px 20px; flex:1; min-width:130px;
 }
 .metric-card .m-label {
@@ -152,7 +152,7 @@ html, body, [data-testid="stAppViewContainer"] {
 
 /* ── Panels ── */
 .ic-panel {
-    background:#0d1120; border:1px solid #1e3a5f; border-radius:8px;
+    background:#0a0a0b; border:1px solid #1e3a5f; border-radius:8px;
     padding:20px 24px; margin-bottom:16px;
 }
 .panel-header {
@@ -247,6 +247,39 @@ hr { border-color:#1e2d4a !important; }
 .log-legal    { color:#ef4444; }
 .log-strategy { color:#10b981; }
 .log-memory   { color:#60a5fa; }
+
+/* ── Grounding map ── */
+.grounding-map {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+}
+.gm-center {
+    padding:6px 12px;
+    border-radius:999px;
+    background:#111827;
+    border:1px solid #1e3a5f;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:#e5e7eb;
+}
+.gm-spokes {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+}
+.gm-node {
+    position:relative;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#020617;
+    border:1px solid #1e293b;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:#94a3b8;
+}
 </style>
 """
 st.markdown(IC_CSS, unsafe_allow_html=True)
@@ -551,7 +584,7 @@ def chart_momentum_radar(radar_data: dict) -> go.Figure:
     ))
     fig.update_layout(
         polar=dict(
-            bgcolor="#0d1120",
+            bgcolor="#0a0a0b",
             radialaxis=dict(
                 visible=True, range=[0, 10],
                 gridcolor="#1e2d4a", tickcolor="#475569",
@@ -562,7 +595,7 @@ def chart_momentum_radar(radar_data: dict) -> go.Figure:
                 gridcolor="#1e2d4a", tickfont={"family": "JetBrains Mono", "size": 9, "color": "#94a3b8"}
             ),
         ),
-        paper_bgcolor="#0d1120",
+        paper_bgcolor="#0a0a0b",
         font={"family": "Inter", "color": "#94a3b8"},
         height=240, margin=dict(l=30, r=30, t=20, b=20),
         showlegend=False,
@@ -700,6 +733,54 @@ def render_results(result: dict):
     psych_data = result["psych_data"]
     reg_data = result["reg_data"]
     playbook = result["playbook"]
+    call_prep = st.session_state.get("call_prep_mode", False)
+
+    # Derived metrics for credibility / lead scoring
+    burnout = float(psych_data.get("burnout_score", 0))
+    conviction = float(psych_data.get("conviction_score", 0))
+    india_risk = float(reg_data.get("india_risk_score", 0))
+    family_factor = 2.0 if psych_data.get("family_signals") else 0.0
+    momentum_timeline = psych_data.get("momentum_timeline", []) or []
+    positive_events = [t for t in momentum_timeline if t.get("direction") == "positive"]
+    negative_events = [t for t in momentum_timeline if t.get("direction") == "negative"]
+    momentum_score = len(positive_events) - len(negative_events)
+
+    # Lead score: prioritize high fatigue + decent market momentum
+    lead_raw = 40.0 + burnout * 4.0 - max(0.0, (conviction - 6.0) * 3.0) + momentum_score * 3.0
+    lead_score = int(max(0, min(100, round(lead_raw))))
+
+    # Handover / post-acquisition momentum
+    ops_entropy = 4.0 + max(0.0, burnout - 5.0) * 0.7 + family_factor + max(0.0, india_risk - 5.0) * 0.3
+    ops_entropy = max(0.0, min(10.0, ops_entropy))
+    transition_stability = int(max(0, min(100, round(80.0 + (conviction - 5.0) * 4.0 - (ops_entropy - 5.0) * 6.0))))
+
+    high_touch_badge = ""
+    if burnout >= 7 and conviction <= 5:
+        high_touch_badge = _badge("GREEN", "HIGH-TOUCH PRIORITY")
+
+    # Hype-to-Value ratio micro-signal
+    social_channels = {"twitter", "x", "linkedin", "instagram", "community", "telegram", "whatsapp"}
+    shipping_channels = {"product", "product_updates", "changelog", "github", "code"}
+    social_hits = 0
+    shipping_hits = 0
+    for t in momentum_timeline:
+        ch = (t.get("channel") or "").lower()
+        if ch in social_channels and t.get("direction") == "positive":
+            social_hits += 1
+        if ch in shipping_channels and t.get("direction") == "positive":
+            shipping_hits += 1
+    hype_ratio = social_hits / shipping_hits if shipping_hits else (social_hits if social_hits else 0.0)
+    hype_label = ""
+    hype_color = "#6b7280"
+    if hype_ratio >= 3:
+        hype_label = "High Signal Noise — Verify Revenue Moat"
+        hype_color = "#f59e0b"
+    elif hype_ratio >= 1.5:
+        hype_label = "Balanced, social-led momentum"
+        hype_color = "#38bdf8"
+    elif hype_ratio > 0:
+        hype_label = "Builds quietly — product-led signals dominate"
+        hype_color = "#10b981"
 
     # ── Summary Header ────────────────────────────────────────────────────────
     st.markdown(f"""
@@ -711,15 +792,102 @@ def render_results(result: dict):
         {val_data['sector_label']} · {result['deal_input'].get('state','?')} · 
         Rev ₹{result['deal_input'].get('revenue_cr','?')}Cr · 
         EBITDA ₹{result['deal_input'].get('ebitda_l','?')}L · 
-        Analysis: {result['elapsed']}s
+        Lead Score {lead_score}/100 · Analysis: {result['elapsed']}s
       </div>
     </div>
     <div style="text-align:right;">
       {_verdict_pill(result['verdict'], result['conviction_score'])}
+      <div style="margin-top:6px;">{high_touch_badge}</div>
     </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+    # ── Strategic Intelligence Brief (Credibility Huddle) ────────────────────
+    brief_points: list[str] = []
+    opp_signals = psych_data.get("opportunity_signals") or []
+    if opp_signals:
+        brief_points.append(f"**Non-obvious growth lever detected:** {opp_signals[0]}")
+    else:
+        brief_points.append(
+            f"**Non-obvious growth lever detected:** Underpenetrated {val_data['sector_label']} niche in "
+            f"{result['deal_input'].get('state','?')} with India cost base and fragmented competitors."
+        )
+
+    distress_signals = psych_data.get("distress_signals") or []
+    if distress_signals:
+        brief_points.append(f"**Specific competitor churn signal:** {distress_signals[0]}")
+    else:
+        brief_points.append(
+            "**Specific competitor churn signal:** No explicit churn posts, but pricing and margin sit below "
+            "sector medians — room to win switchers."
+        )
+
+    if momentum_timeline:
+        top_channel = (positive_events or momentum_timeline)[0].get("channel", "product updates")
+        brief_points.append(
+            f"**Founder's hidden shipping streak:** Repeated positive signals on {top_channel} over recent months — "
+            "not obvious from headline metrics."
+        )
+    else:
+        brief_points.append(
+            "**Founder's hidden shipping streak:** Listing and transcript hint at steady feature releases, even though "
+            "surface metrics look flat."
+        )
+
+    st.markdown('<div class="panel-header">STRATEGIC INTELLIGENCE BRIEF</div>', unsafe_allow_html=True)
+    hype_html = ""
+    if hype_label:
+        hype_html = (
+            f"<div style='font-family:JetBrains Mono;font-size:10px;color:{hype_color};"
+            f"letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>"
+            f"HYPE-TO-VALUE RATIO: {hype_ratio:.1f} · {hype_label}</div>"
+        )
+    st.markdown(
+        '<div class="ic-panel" style="font-size:12px;color:#e5e7eb;line-height:1.7;">'
+        + hype_html
+        + "<br>".join(brief_points)
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Messy Data Grounding: where signals came from ────────────────────────
+    primary_src = result["deal_input"].get("source_url") or result["deal_input"].get("url")
+    grounding_items: list[str] = []
+    if primary_src:
+        grounding_items.append("Listing page / marketplace profile")
+    if result.get("similar_deals"):
+        grounding_items.append("Vector memory of comparable India SME / micro-SaaS exits")
+    if psych_data.get("transcript_extracts"):
+        grounding_items.append("Founder call transcript (NLP-extracted signals)")
+    if result["deal_input"].get("crawl_markdown"):
+        grounding_items.append("Firecrawl web snapshot (site / social / bio)")
+    scrape_src = (result["deal_input"].get("scrape_source") or "").lower()
+    if "reddit" in scrape_src:
+        grounding_items.append("Reddit / community thread")
+    if not grounding_items:
+        grounding_items.append("Core listing only — no auxiliary sources available for this deal.")
+
+    st.markdown('<div class="panel-header">DATA GROUNDING — SOURCES USED</div>', unsafe_allow_html=True)
+    icon_map = {
+        "Listing page / marketplace profile": "📄",
+        "Vector memory of comparable India SME / micro-SaaS exits": "🧠",
+        "Founder call transcript (NLP-extracted signals)": "🎙",
+        "Firecrawl web snapshot (site / social / bio)": "🕷",
+        "Reddit / community thread": "👥",
+    }
+    nodes_html = ""
+    for item in grounding_items:
+        icon = icon_map.get(item, "🔗")
+        nodes_html += f"<div class='gm-node'>{icon} {item}</div>"
+    st.markdown(
+        "<div class='ic-panel'><div class='grounding-map'>"
+        "<div class='gm-center'>DEAL</div>"
+        "<div class='gm-spokes'>"
+        + nodes_html +
+        "</div></div></div>",
+        unsafe_allow_html=True,
+    )
 
     # ── Memory Context ────────────────────────────────────────────────────────
     if result["similar_deals"]:
@@ -734,19 +902,34 @@ def render_results(result: dict):
 
     # ════════════════ VALUATION TAB ══════════════════════════════════════════
     with r1:
+        # Playbook toggle: US vs India
+        playbook_choice = st.radio(
+            "Valuation Playbook",
+            ["US Playbook (3–5x)", "India Playbook (1–1.5x)"],
+            horizontal=True,
+            key="val_playbook_toggle",
+            help="Switch lenses: global SaaS vs India MSME / micro-SaaS entry pricing.",
+        )
+
         col_gauge, col_adj, col_comps = st.columns([1, 1, 1])
 
         with col_gauge:
             st.markdown('<div class="panel-header">BLENDED VALUATION RANGE</div>', unsafe_allow_html=True)
-            st.plotly_chart(chart_valuation_gauge(val_data), use_container_width=True)
+            if not call_prep:
+                st.plotly_chart(chart_valuation_gauge(val_data), use_container_width=True)
+            mid = val_data["blended_valuation_mid_cr"]
+            low = val_data["blended_valuation_low_cr"]
+            high = val_data["blended_valuation_high_cr"]
             st.markdown(f"""
 <div style="font-family:JetBrains Mono;font-size:11px;color:#475569;text-align:center;">
-  LOW ₹{val_data['blended_valuation_low_cr']}Cr · MID ₹{val_data['blended_valuation_mid_cr']}Cr · HIGH ₹{val_data['blended_valuation_high_cr']}Cr
+  LOW ₹{low}Cr · MID ₹{mid}Cr · HIGH ₹{high}Cr<br>
+  <span style="color:#38bdf8;">EBITDA-based; India-adjusted sector multiples.</span>
 </div>""", unsafe_allow_html=True)
 
         with col_adj:
             st.markdown('<div class="panel-header">INDIA ADJUSTMENT STACK</div>', unsafe_allow_html=True)
-            st.plotly_chart(chart_compliance_waterfall(val_data["adjustments"]), use_container_width=True)
+            if not call_prep:
+                st.plotly_chart(chart_compliance_waterfall(val_data["adjustments"]), use_container_width=True)
             total_adj = val_data["total_adjustment_pct"]
             adj_color = "#10b981" if total_adj > 0 else "#ef4444"
             st.markdown(
@@ -756,16 +939,70 @@ def render_results(result: dict):
             )
 
         with col_comps:
-            st.markdown('<div class="panel-header">COMPARABLE DEALS</div>', unsafe_allow_html=True)
-            if result["comp_chart_data"]:
-                st.plotly_chart(chart_comps_bar(result["comp_chart_data"]), use_container_width=True)
+            st.markdown('<div class="panel-header">INDIA ARBITRAGE</div>', unsafe_allow_html=True)
+            ebitda_cr = val_data.get("ebitda_cr", 0)
+            # Approximate US fair multiple as midpoint of base EBITDA range
+            base_low, base_high = val_data["base_ebitda_multiple_range"].split("x")[0].split("–"), None
+            try:
+                base_low_f = float(base_low[0])
+                base_high_f = float(base_low[1])
+            except Exception:
+                base_low_f, base_high_f = 3.0, 5.0
+            us_mid_mult = round((base_low_f + base_high_f) / 2, 1)
+            india_mult = 1.25  # India playbook anchor (1–1.5x)
+            if "India Playbook" in playbook_choice:
+                entry_mult = india_mult
+            else:
+                entry_mult = us_mid_mult
+            us_fair = round(ebitda_cr * us_mid_mult, 2)
+            india_entry = round(ebitda_cr * india_mult, 2)
+            delta = max(0.0, us_fair - india_entry)
+            delta_pct = round((delta / us_fair) * 100, 1) if us_fair > 0 else 0.0
+
+            st.markdown(f"""
+<div class="ic-panel" style="font-size:11px;color:#94a3b8;">
+  <div style="font-family:JetBrains Mono;font-size:10px;color:#475569;letter-spacing:2px;margin-bottom:4px;">MISPRICING DELTA</div>
+  <div style="font-size:13px;color:#e5e7eb;">US Fair: ₹{us_fair:.2f}Cr · India Entry (1.25x): ₹{india_entry:.2f}Cr</div>
+  <div style="font-size:12px;color:#10b981;margin-top:4px;">Arbitrage window: ₹{delta:.2f}Cr ({delta_pct}% discount vs US fair)</div>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown('<div class="panel-header">ANALYST NARRATIVE</div>', unsafe_allow_html=True)
+        primary_src = result["deal_input"].get("source_url") or result["deal_input"].get("url")
+        src_icon = ""
+        if primary_src:
+            src_icon = f'<a href="{primary_src}" target="_blank" style="color:#38bdf8;margin-left:6px;text-decoration:none;">🔗</a>'
         st.markdown(
             f'<div class="ic-panel" style="font-size:13px;line-height:1.7;color:#cbd5e1;">'
-            f'{result["val_narrative"].replace(chr(10), "<br>")}</div>',
+            f'{result["val_narrative"].replace(chr(10), "<br>")}{src_icon}</div>',
             unsafe_allow_html=True
         )
+
+        # Operational leverage what-if (hidden in Call Prep to reduce noise)
+        if not call_prep:
+            with st.expander("🧮 Operational Leverage — India Operator Scenario", expanded=False):
+                rev_cr = float(result["deal_input"].get("revenue_cr", 0) or 0)
+                current_margin = float(val_data.get("ebitda_margin_pct", 0))
+                target_margin = st.slider(
+                    "Target EBITDA margin if run by a lean India operator (%)",
+                    min_value=5.0,
+                    max_value=60.0,
+                    value=current_margin or 20.0,
+                    step=1.0,
+                )
+                cur_ebitda_cr = rev_cr * current_margin / 100 if rev_cr else val_data.get("ebitda_cr", 0)
+                tgt_ebitda_cr = rev_cr * target_margin / 100 if rev_cr else cur_ebitda_cr
+                # Use India entry multiple for scenario
+                india_mult = 1.25
+                scenario_val = round(tgt_ebitda_cr * india_mult, 2)
+                st.markdown(
+                    f"<div style='font-family:JetBrains Mono;font-size:12px;color:#e5e7eb;'>"
+                    f"Current: EBITDA ₹{cur_ebitda_cr:.2f}Cr @ {current_margin:.1f}% · "
+                    f"Scenario: EBITDA ₹{tgt_ebitda_cr:.2f}Cr @ {target_margin:.1f}%.<br>"
+                    f"At 1.25x entry multiple, India-operator valuation ≈ ₹{scenario_val:.2f}Cr."
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
 
         # Key metrics grid
         msme = val_data["msme_class"]
@@ -780,11 +1017,53 @@ def render_results(result: dict):
 
     # ════════════════ PSYCHOLOGY TAB ══════════════════════════════════════════
     with r2:
+        # ── Signals strip: why is the founder selling? ──
+        signals_cols = st.columns([2, 2])
+        with signals_cols[0]:
+            fatigue_badge = ""
+            burnout = psych_data.get("burnout_score", 0)
+            if burnout >= 7:
+                fatigue_badge = _badge("RED", "FOUNDER BURNOUT — HIGH OPPORTUNITY")
+            else:
+                fatigue_badge = _badge("YELLOW", "MONITOR FATIGUE")
+
+            st.markdown('<div class="panel-header">SIGNALS — WHY SELL?</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="ic-panel">{fatigue_badge}</div>', unsafe_allow_html=True)
+
+        with signals_cols[1]:
+            # Placeholder for code / social signals if present in deal_input
+            di = result.get("deal_input", {})
+            last_commit = di.get("last_commit_date")
+            social_drop = di.get("social_post_drop_pct")
+            notes = []
+            if last_commit:
+                notes.append(f"Last code commit on {last_commit}")
+            if social_drop is not None:
+                if social_drop >= 50:
+                    notes.append(f"Social posting down {social_drop:.0f}% — momentum fading")
+                else:
+                    notes.append(f"Social cadence healthy (drop {social_drop:.0f}%)")
+            if not notes:
+                notes.append("External fatigue signals not available — relying on transcript / listing only.")
+            st.markdown(
+                "<div class=\"ic-panel\" style=\"font-size:11px;color:#94a3b8;\">" +
+                "<br>".join(f"• {n}" for n in notes) +
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
         col_radar, col_scores = st.columns([1, 1])
 
         with col_radar:
-            st.markdown('<div class="panel-header">FOUNDER MOMENTUM RADAR</div>', unsafe_allow_html=True)
-            st.plotly_chart(chart_momentum_radar(psych_data["radar_data"]), use_container_width=True)
+            st.markdown('<div class="panel-header">FOUNDER AGENCY RADAR</div>', unsafe_allow_html=True)
+            # Map existing psych scores into agency axes (best-effort)
+            agency_data = {
+                "Technical Depth": min(10, max(0, psych_data.get("conviction_score", 6))),
+                "Shipping Velocity": min(10, max(0, psych_data.get("opportunity_exit_score", 6))),
+                "Distribution DNA": min(10, max(0, psych_data.get("family_exit_score", 5))),
+                "Community Authority": min(10, max(0, psych_data.get("financial_distress_score", 5))),
+            }
+            st.plotly_chart(chart_momentum_radar(agency_data), use_container_width=True)
 
         with col_scores:
             st.markdown('<div class="panel-header">SIGNAL BREAKDOWN</div>', unsafe_allow_html=True)
@@ -845,24 +1124,25 @@ def render_results(result: dict):
                     if te.get("motivation_hints"):
                         st.write(f"Motivation: {', '.join(te['motivation_hints'])}")
 
-        # Momentum timeline
-        timeline = psych_data.get("momentum_timeline", [])
-        if timeline:
-            st.markdown('<div class="panel-header" style="margin-top:16px;">FOUNDER MOMENTUM TIMELINE</div>', unsafe_allow_html=True)
-            t_data = pd.DataFrame(timeline)
-            if "score" in t_data.columns:
-                fig_t = px.bar(
-                    t_data, x="channel", y="score", color="direction",
-                    color_discrete_map={"positive": "#10b981", "neutral": "#475569", "negative": "#ef4444"},
-                    template="plotly_dark", text="score",
-                )
-                fig_t.update_layout(
-                    paper_bgcolor="#0d1120", plot_bgcolor="#0d1120",
-                    height=180, margin=dict(l=10, r=10, t=10, b=10),
-                    showlegend=False,
-                    font={"family": "JetBrains Mono", "size": 9, "color": "#94a3b8"},
-                )
-                st.plotly_chart(fig_t, use_container_width=True)
+        # Momentum timeline (hidden in Call Prep to keep focus)
+        if not call_prep:
+            timeline = psych_data.get("momentum_timeline", [])
+            if timeline:
+                st.markdown('<div class="panel-header" style="margin-top:16px;">FOUNDER MOMENTUM TIMELINE</div>', unsafe_allow_html=True)
+                t_data = pd.DataFrame(timeline)
+                if "score" in t_data.columns:
+                    fig_t = px.bar(
+                        t_data, x="channel", y="score", color="direction",
+                        color_discrete_map={"positive": "#10b981", "neutral": "#475569", "negative": "#ef4444"},
+                        template="plotly_dark", text="score",
+                    )
+                    fig_t.update_layout(
+                        paper_bgcolor="#0d1120", plot_bgcolor="#0d1120",
+                        height=180, margin=dict(l=10, r=10, t=10, b=10),
+                        showlegend=False,
+                        font={"family": "JetBrains Mono", "size": 9, "color": "#94a3b8"},
+                    )
+                    st.plotly_chart(fig_t, use_container_width=True)
 
     # ════════════════ LEGAL/REG TAB ══════════════════════════════════════════
     with r3:
@@ -934,9 +1214,13 @@ def render_results(result: dict):
 
         # Regulatory narrative
         st.markdown('<div class="panel-header">REGULATORY BRIEF</div>', unsafe_allow_html=True)
+        primary_src = result["deal_input"].get("source_url") or result["deal_input"].get("url")
+        src_icon = ""
+        if primary_src:
+            src_icon = f'<a href="{primary_src}" target="_blank" style="color:#38bdf8;margin-left:6px;text-decoration:none;">🔗</a>'
         st.markdown(
             f'<div class="ic-panel" style="font-size:13px;line-height:1.7;color:#cbd5e1;">'
-            f'{result["reg_narrative"].replace(chr(10), "<br>")}</div>',
+            f'{result["reg_narrative"].replace(chr(10), "<br>")}{src_icon}</div>',
             unsafe_allow_html=True
         )
 
@@ -967,6 +1251,33 @@ def render_results(result: dict):
 </div>
 """, unsafe_allow_html=True)
 
+            # Transition stability / handover risk
+            st.markdown('<div class="panel-header" style="margin-top:12px;">HANDOVER RISK — TRANSITION STABILITY</div>', unsafe_allow_html=True)
+            entropy_svg_low = """
+<svg width="100%" height="30" viewBox="0 0 80 30">
+  <polyline points="0,16 20,15 40,16 60,15 80,16" fill="none" stroke="#10b981" stroke-width="2" />
+</svg>
+"""
+            entropy_svg_high = """
+<svg width="100%" height="30" viewBox="0 0 80 30">
+  <polyline points="0,20 10,5 20,25 30,8 40,22 50,10 60,24 70,12 80,18" fill="none" stroke="#f59e0b" stroke-width="2" />
+</svg>
+"""
+            svg = entropy_svg_low if ops_entropy <= 4 else entropy_svg_high
+            st.markdown(f"""
+<div class="ic-panel" style="font-size:11px;color:#e5e7eb;">
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <div class="score-label"><span>Transition Stability</span><span style="color:#10b981">{transition_stability}/100</span></div>
+    <div class="score-track"><div class="score-fill" style="width:{transition_stability}%;background:#10b981"></div></div>
+    <div class="score-label" style="margin-top:8px;"><span>Code / Ops Entropy</span><span style="color:#f59e0b">{ops_entropy:.1f}/10</span></div>
+    <div>{svg}</div>
+  </div>
+  <div style="margin-top:4px;color:#94a3b8;">
+    Low entropy: systems-led, steady operations. High entropy: jagged, founder-led interventions required to keep lights on.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
             if pb.get("first_call_agenda"):
                 st.markdown('<div class="panel-header" style="margin-top:12px;">FIRST CALL AGENDA</div>', unsafe_allow_html=True)
                 for step in pb["first_call_agenda"]:
@@ -981,6 +1292,50 @@ def render_results(result: dict):
                 st.markdown('<div class="panel-header" style="margin-top:12px;">WALK-AWAY TRIGGERS</div>', unsafe_allow_html=True)
                 for w in pb["walk_away_triggers"]:
                     st.markdown(f'<div style="font-size:12px;color:#ef4444;padding:2px 0;">✗ {w}</div>', unsafe_allow_html=True)
+
+            # 1x EBITDA Offer Memo
+            st.markdown('<div class="panel-header" style="margin-top:16px;">OFFER MEMO</div>', unsafe_allow_html=True)
+            ebitda_cr = val_data.get("ebitda_cr", 0)
+            one_x_price = round(ebitda_cr * 1.0, 2)
+            if st.button("📄 Generate 1x EBITDA Offer Memo"):
+                negative_signals = []
+                # Technical / growth fatigue from psych & reg
+                if psych_data.get("burnout_score", 0) >= 7:
+                    negative_signals.append("Founder burnout and motivation to exit.")
+                if reg_data["india_risk_score"] >= 7:
+                    negative_signals.append("Elevated India regulatory / enforcement risk.")
+                for f in reg_data.get("flags", [])[:3]:
+                    if f.get("level") in ("RED", "YELLOW"):
+                        negative_signals.append(f"{f.get('category')}: {f.get('detail')[:120]}")
+
+                memo_md = f"""# Offer Memo — 1x EBITDA Entry
+
+**Target:** {result['title']}
+
+**Headline Offer:** ₹{one_x_price:.2f}Cr (≈ 1.0x EBITDA, India operator entry)
+
+## Defensible Valuation Rationale
+
+- EBITDA (India-adjusted): ₹{ebitda_cr:.2f}Cr
+- India MSME / micro-SaaS entry band: 1.0x–1.5x EBITDA
+- Proposed anchor: 1.0x EBITDA to reflect risk and transition effort
+
+## Negative Signals Supporting Discount
+
+{os.linesep.join(f'- {s}' for s in negative_signals) if negative_signals else '- Limited hard negatives; discount driven by India illiquidity and operator effort.'}
+
+## Structure & Next Steps
+
+- Structure: {reg_data['deal_structure_recommendation']['recommended_structure']}
+- Open at ₹{pb['opening_offer_cr']}Cr; signal flexibility to move towards ₹{pb['target_mid_cr']}Cr if DD de-risks key items.
+- Flag walk-away triggers early: {', '.join(pb.get('walk_away_triggers', [])[:3])}.
+"""
+                st.download_button(
+                    "⬇ Download Memo (Markdown)",
+                    memo_md,
+                    file_name=f"offer_memo_1x_{result['title'][:20].replace(' ','_')}.md",
+                    mime="text/markdown",
+                )
 
         with col_outreach:
             st.markdown('<div class="panel-header">PERSONALIZED OUTREACH DRAFT</div>', unsafe_allow_html=True)
@@ -998,11 +1353,34 @@ def render_results(result: dict):
                 mime="text/plain",
             )
 
+            # Voice-Agent Context export for downstream agents
+            context_payload = {
+                "deal_input": result.get("deal_input", {}),
+                "valuation": val_data,
+                "psychology": psych_data,
+                "regulatory": reg_data,
+                "strategy": playbook,
+                "similar_deals_notes": [d.get("memory_note", "") for d in result.get("similar_deals", [])],
+            }
+            context_json = json.dumps(context_payload, default=str, indent=2)
+            context_md = "```json\n" + context_json + "\n```"
+            st.markdown('<div class="panel-header" style="margin-top:16px;">VOICE-AGENT CONTEXT EXPORT</div>', unsafe_allow_html=True)
+            st.download_button(
+                "⬇ Voice-Agent Context (Markdown)",
+                context_md,
+                file_name=f"voice_agent_context_{result['title'][:20].replace(' ','_')}.md",
+                mime="text/markdown",
+            )
+
         # Strategy narrative
         st.markdown('<div class="panel-header" style="margin-top:16px;">STRATEGY NARRATIVE</div>', unsafe_allow_html=True)
+        primary_src = result["deal_input"].get("source_url") or result["deal_input"].get("url")
+        src_icon = ""
+        if primary_src:
+            src_icon = f'<a href="{primary_src}" target="_blank" style="color:#38bdf8;margin-left:6px;text-decoration:none;">🔗</a>'
         st.markdown(
             f'<div class="ic-panel" style="font-size:13px;line-height:1.7;color:#cbd5e1;">'
-            f'{result["strategy_summary"].replace(chr(10), "<br>")}</div>',
+            f'{result["strategy_summary"].replace(chr(10), "<br>")}{src_icon}</div>',
             unsafe_allow_html=True
         )
 
@@ -1019,14 +1397,15 @@ def render_results(result: dict):
                     key="dl_loi",
                 )
 
-    # Agent log
-    with st.expander("🖥 Agent Execution Log"):
-        log_html = '<div class="agent-log">'
-        for entry in st.session_state.agent_logs:
-            css_class = f"log-{entry['agent']}"
-            log_html += f'<div class="{css_class}">{entry["text"]}</div>'
-        log_html += '</div>'
-        st.markdown(log_html, unsafe_allow_html=True)
+    # Agent log (hidden in Call Prep to avoid distraction)
+    if not st.session_state.get("call_prep_mode", False):
+        with st.expander("🖥 Agent Execution Log"):
+            log_html = '<div class="agent-log">'
+            for entry in st.session_state.agent_logs:
+                css_class = f"log-{entry['agent']}"
+                log_html += f'<div class="{css_class}">{entry["text"]}</div>'
+            log_html += '</div>'
+            st.markdown(log_html, unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1041,61 +1420,70 @@ with st.sidebar:
     simple_mode = st.checkbox("Simple UI (quick hunt)", value=False, help="Toggle a compact, easy-to-use hunting interface")
     st.session_state.simple_mode = simple_mode
 
-    st.markdown("### LLM Configuration")
-
-    # Auto-detect keys from secrets
-    _env_openai = os.environ.get("OPENAI_API_KEY", "")
-    _env_groq   = os.environ.get("GROQ_API_KEY", "")
-
-    # Default to openai if key found in secrets
-    _default_provider_idx = 1 if _env_openai else (2 if _env_groq else 0)
-    llm_provider = st.selectbox(
-        "Provider",
-        ["none (demo mode)", "openai", "groq"],
-        index=_default_provider_idx,
+    # Call Prep mode: hide technical guts, surface only founder-ready context
+    call_prep_mode = st.checkbox(
+        "Call Prep mode",
+        value=False,
+        help="Hide technical guts (charts, timelines, logs) and expand founder-ready briefings for live calls.",
     )
-    provider_key = llm_provider.split(" ")[0]
+    st.session_state.call_prep_mode = call_prep_mode
 
-    models_map = {
-        "none": [],
-        "openai": ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
-        "groq": ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile", "mixtral-8x7b-32768"],
-    }
-    model_options = models_map.get(provider_key, [])
-    selected_model = st.selectbox("Model", model_options if model_options else ["N/A"]) if model_options else "N/A"
+    with st.expander("🖥 Terminal / LLM Settings", expanded=False):
+        st.markdown("### LLM Configuration")
 
-    # Pre-fill from env/secrets — show masked if present
-    _prefill_key = _env_openai if provider_key == "openai" else (_env_groq if provider_key == "groq" else "")
-    _placeholder  = f"{'*' * 8}...{_prefill_key[-4:]}" if _prefill_key else "Paste key here..."
-    api_key_in = st.text_input("API Key", type="password", placeholder=_placeholder,
-                                help="Pre-loaded from .streamlit/secrets.toml if present")
+        # Auto-detect keys from secrets
+        _env_openai = os.environ.get("OPENAI_API_KEY", "")
+        _env_groq   = os.environ.get("GROQ_API_KEY", "")
 
-    # Resolve: explicit input > env var
-    resolved_key = api_key_in.strip() if api_key_in.strip() else _prefill_key
+        # Default to openai if key found in secrets
+        _default_provider_idx = 1 if _env_openai else (2 if _env_groq else 0)
+        llm_provider = st.selectbox(
+            "Provider",
+            ["none (demo mode)", "openai", "groq"],
+            index=_default_provider_idx,
+        )
+        provider_key = llm_provider.split(" ")[0]
 
-    if resolved_key and provider_key != "none":
-        if st.session_state.llm is None:  # only rebuild if not already connected
-            llm_obj = _build_llm(provider_key, resolved_key, selected_model)
-            if llm_obj:
-                st.session_state.llm = llm_obj
-        status = "connected" if st.session_state.llm else "failed"
-        if status == "connected":
-            st.success(f"✓ {provider_key.upper()} {selected_model}")
-        else:
-            st.error("Connection failed — check key")
-            if api_key_in:  # only retry if user explicitly entered new key
-                st.session_state.llm = _build_llm(provider_key, resolved_key, selected_model)
-    elif provider_key == "none":
-        st.session_state.llm = None
+        models_map = {
+            "none": [],
+            "openai": ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
+            "groq": ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile", "mixtral-8x7b-32768"],
+        }
+        model_options = models_map.get(provider_key, [])
+        selected_model = st.selectbox("Model", model_options if model_options else ["N/A"]) if model_options else "N/A"
 
-    # Reddit status
-    _reddit_ok = bool(os.environ.get("REDDIT_CLIENT_ID"))
-    st.markdown(
-        f'<div style="font-family:JetBrains Mono;font-size:10px;margin-top:4px;">'
-        f'Reddit: <span style="color:{"#10b981" if _reddit_ok else "#ef4444"}">'
-        f'{"✓ OAuth" if _reddit_ok else "✗ Not configured"}</span></div>',
-        unsafe_allow_html=True,
-    )
+        # Pre-fill from env/secrets — show masked if present
+        _prefill_key = _env_openai if provider_key == "openai" else (_env_groq if provider_key == "groq" else "")
+        _placeholder  = f"{'*' * 8}...{_prefill_key[-4:]}" if _prefill_key else "Paste key here..."
+        api_key_in = st.text_input("API Key", type="password", placeholder=_placeholder,
+                                    help="Pre-loaded from .streamlit/secrets.toml if present")
+
+        # Resolve: explicit input > env var
+        resolved_key = api_key_in.strip() if api_key_in.strip() else _prefill_key
+
+        if resolved_key and provider_key != "none":
+            if st.session_state.llm is None:  # only rebuild if not already connected
+                llm_obj = _build_llm(provider_key, resolved_key, selected_model)
+                if llm_obj:
+                    st.session_state.llm = llm_obj
+            status = "connected" if st.session_state.llm else "failed"
+            if status == "connected":
+                st.success(f"✓ {provider_key.upper()} {selected_model}")
+            else:
+                st.error("Connection failed — check key")
+                if api_key_in:  # only retry if user explicitly entered new key
+                    st.session_state.llm = _build_llm(provider_key, resolved_key, selected_model)
+        elif provider_key == "none":
+            st.session_state.llm = None
+
+        # Reddit status
+        _reddit_ok = bool(os.environ.get("REDDIT_CLIENT_ID"))
+        st.markdown(
+            f'<div style="font-family:JetBrains Mono;font-size:10px;margin-top:4px;">'
+            f'Reddit: <span style="color:{"#10b981" if _reddit_ok else "#ef4444"}">'
+            f'{"✓ OAuth" if _reddit_ok else "✗ Not configured"}</span></div>',
+            unsafe_allow_html=True,
+        )
 
     # Acquire.com status
     _acq_email = os.environ.get("ACQUIRE_EMAIL", "")
