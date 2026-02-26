@@ -1,0 +1,407 @@
+{
+  "sectors": {
+    "manufacturing_general": {
+      "label": "General Manufacturing",
+      "ebitda_multiple_low": 6,
+      "ebitda_multiple_high": 12,
+      "revenue_multiple_low": 0.5,
+      "revenue_multiple_high": 1.5,
+      "typical_ebitda_margin_pct": 10,
+      "family_run_discount": 0.25,
+      "digital_premium": 0.0,
+      "gst_clean_premium": 0.10,
+      "notes": "Asset-heavy; value in plant/machinery and long-term customer contracts.",
+      "key_risks": ["succession_planning", "labour_law_compliance", "raw_material_pricing", "working_capital_intensity"],
+      "typical_deal_size_cr": [1.0, 15.0]
+    },
+    "manufacturing_precision": {
+      "label": "Precision / CNC / Engineering Components",
+      "ebitda_multiple_low": 7,
+      "ebitda_multiple_high": 14,
+      "revenue_multiple_low": 0.8,
+      "revenue_multiple_high": 2.0,
+      "typical_ebitda_margin_pct": 13,
+      "family_run_discount": 0.20,
+      "digital_premium": 0.10,
+      "gst_clean_premium": 0.10,
+      "notes": "Customer stickiness high (OEM relationships). Technical moat matters. MSME vendor registration adds strategic value.",
+      "key_risks": ["key_employee_risk", "customer_concentration_oem", "tooling_obsolescence"],
+      "typical_deal_size_cr": [2.0, 20.0]
+    },
+    "saas": {
+      "label": "SaaS / Cloud Software",
+      "ebitda_multiple_low": 10,
+      "ebitda_multiple_high": 18,
+      "revenue_multiple_low": 4.0,
+      "revenue_multiple_high": 8.0,
+      "typical_ebitda_margin_pct": 65,
+      "family_run_discount": 0.10,
+      "digital_premium": 0.15,
+      "gst_clean_premium": 0.05,
+      "notes": "ARR/MRR driven. Churn is the key metric. India SaaS multiples are 30-40% below US benchmarks due to shallow exit markets.",
+      "key_risks": ["founder_key_person_risk", "tech_debt", "payment_gateway_lock_in", "gst_tcs_compliance"],
+      "typical_deal_size_cr": [0.5, 10.0]
+    },
+    "d2c_ecommerce": {
+      "label": "D2C / E-Commerce Brand",
+      "ebitda_multiple_low": 3,
+      "ebitda_multiple_high": 8,
+      "revenue_multiple_low": 1.0,
+      "revenue_multiple_high": 3.0,
+      "typical_ebitda_margin_pct": 18,
+      "family_run_discount": 0.20,
+      "digital_premium": 0.10,
+      "gst_clean_premium": 0.08,
+      "notes": "Contribution margin and CAC:LTV are critical. Marketplace-heavy revenue (>60% Flipkart/Amazon) is a risk — brand portability must be verified.",
+      "key_risks": ["marketplace_dependency", "return_rate_inflation", "brand_portability", "inventory_financing"],
+      "typical_deal_size_cr": [0.5, 8.0]
+    },
+    "newsletter_media": {
+      "label": "Newsletter / Content / Media",
+      "ebitda_multiple_low": 2,
+      "ebitda_multiple_high": 5,
+      "revenue_multiple_low": 1.5,
+      "revenue_multiple_high": 3.0,
+      "typical_ebitda_margin_pct": 60,
+      "family_run_discount": 0.05,
+      "digital_premium": 0.10,
+      "gst_clean_premium": 0.0,
+      "notes": "India newsletter space is nascent. Sponsor depth is shallow vs US. Open rate + advertiser renewal rate are key diligence points.",
+      "key_risks": ["founder_brand_dependency", "sponsor_concentration", "email_deliverability", "gst_for_digital_services"],
+      "typical_deal_size_cr": [0.1, 2.0]
+    },
+    "services_b2b": {
+      "label": "B2B Professional Services",
+      "ebitda_multiple_low": 4,
+      "ebitda_multiple_high": 8,
+      "revenue_multiple_low": 0.5,
+      "revenue_multiple_high": 1.5,
+      "typical_ebitda_margin_pct": 25,
+      "family_run_discount": 0.30,
+      "digital_premium": 0.05,
+      "gst_clean_premium": 0.12,
+      "notes": "Relationship-driven. Retention post-acquisition is the #1 risk. Verify client contracts — month-to-month is a red flag.",
+      "key_risks": ["founder_key_person_risk", "client_churn_post_acquisition", "talent_retention", "no_locked_in_contracts"],
+      "typical_deal_size_cr": [0.5, 5.0]
+    },
+    "food_fmcg": {
+      "label": "Food / FMCG / Consumer Brands",
+      "ebitda_multiple_low": 4,
+      "ebitda_multiple_high": 10,
+      "revenue_multiple_low": 0.5,
+      "revenue_multiple_high": 2.0,
+      "typical_ebitda_margin_pct": 15,
+      "family_run_discount": 0.25,
+      "digital_premium": 0.05,
+      "gst_clean_premium": 0.08,
+      "notes": "FSSAI compliance is non-negotiable. Distribution network = moat. Regional brand premium valid if verifiable.",
+      "key_risks": ["fssai_compliance", "distribution_channel_dependency", "raw_material_volatility", "shelf_space_competition"],
+      "typical_deal_size_cr": [1.0, 20.0]
+    },
+    "education_edtech": {
+      "label": "Education / EdTech",
+      "ebitda_multiple_low": 5,
+      "ebitda_multiple_high": 12,
+      "revenue_multiple_low": 2.0,
+      "revenue_multiple_high": 5.0,
+      "typical_ebitda_margin_pct": 30,
+      "family_run_discount": 0.15,
+      "digital_premium": 0.15,
+      "gst_clean_premium": 0.05,
+      "notes": "Post-2023 regulatory shifts impacted EdTech valuations. Offline coaching center businesses have different risk profiles vs online.",
+      "key_risks": ["regulatory_risk_edtech", "teacher_concentration", "cohort_dependency", "neet_jee_cyclicality"],
+      "typical_deal_size_cr": [0.5, 10.0]
+    },
+    "automation_ai_tools": {
+      "label": "AI / Automation / Bots",
+      "ebitda_multiple_low": 8,
+      "ebitda_multiple_high": 20,
+      "revenue_multiple_low": 3.0,
+      "revenue_multiple_high": 8.0,
+      "typical_ebitda_margin_pct": 65,
+      "family_run_discount": 0.05,
+      "digital_premium": 0.20,
+      "gst_clean_premium": 0.05,
+      "notes": "Rapidly commoditizing. Moat must be proprietary data or deep integrations. LLM API dependency is a valuation risk.",
+      "key_risks": ["commoditization_risk", "llm_provider_dependency", "data_ownership_ambiguity", "api_cost_inflation"],
+      "typical_deal_size_cr": [0.3, 8.0]
+    },
+    "healthcare_wellness": {
+      "label": "Healthcare / Wellness / MedTech",
+      "ebitda_multiple_low": 6,
+      "ebitda_multiple_high": 15,
+      "revenue_multiple_low": 1.5,
+      "revenue_multiple_high": 4.0,
+      "typical_ebitda_margin_pct": 20,
+      "family_run_discount": 0.20,
+      "digital_premium": 0.10,
+      "gst_clean_premium": 0.08,
+      "notes": "CDSCO licensing is complex and non-transferable. Doctor-founded businesses have high key-person risk.",
+      "key_risks": ["regulatory_cdsco", "doctor_key_person_risk", "insurance_reimbursement_dependency", "license_transfer_complexity"],
+      "typical_deal_size_cr": [0.5, 15.0]
+    }
+  },
+
+  "india_state_profiles": {
+    "Maharashtra": {
+      "deal_density_score": 95,
+      "primary_sectors": ["manufacturing_precision", "saas", "d2c_ecommerce", "services_b2b"],
+      "labour_law_complexity": "high",
+      "gst_enforcement_level": "high",
+      "family_business_prevalence": "very_high",
+      "notable_hubs": ["Mumbai", "Pune", "Nashik", "Aurangabad", "Nagpur"],
+      "avg_valuation_premium_pct": 5,
+      "state_specific_risks": [
+        "Shops & Establishments Act \u2014 mandatory compliance for workforce",
+        "Maharashtra Pollution Control Board (MPCB) for manufacturing",
+        "MIDC land lease complications on title transfer",
+        "High commercial real estate costs in Mumbai/Pune"
+      ],
+      "cultural_notes": "Marathi business culture values relationship first; don't rush to price in first meeting."
+    },
+    "Gujarat": {
+      "deal_density_score": 82,
+      "primary_sectors": ["manufacturing_general", "food_fmcg", "d2c_ecommerce", "services_b2b"],
+      "labour_law_complexity": "medium",
+      "gst_enforcement_level": "very_high",
+      "family_business_prevalence": "very_high",
+      "notable_hubs": ["Ahmedabad", "Surat", "Rajkot", "Vadodara", "Anand"],
+      "avg_valuation_premium_pct": 3,
+      "state_specific_risks": [
+        "Strong Baniya/Patel family business culture \u2014 expect patriarch involvement",
+        "Chemical industry CPCB compliance if relevant",
+        "Cluster-based valuation expectations \u2014 sellers compare to neighbours",
+        "GIFT City regulations if fintech angle"
+      ],
+      "cultural_notes": "Gujarat traders are very financially savvy \u2014 come with numbers, not just story. Price expectations are firm."
+    },
+    "Karnataka": {
+      "deal_density_score": 78,
+      "primary_sectors": ["saas", "automation_ai_tools", "services_b2b", "d2c_ecommerce"],
+      "labour_law_complexity": "medium",
+      "gst_enforcement_level": "medium",
+      "family_business_prevalence": "medium",
+      "notable_hubs": ["Bengaluru", "Mysuru", "Hubli-Dharwad", "Mangaluru"],
+      "avg_valuation_premium_pct": 8,
+      "state_specific_risks": [
+        "IT/SaaS founders have inflated US-benchmark valuations \u2014 price expectation management needed",
+        "High talent cost in Bengaluru impacts SaaS margins",
+        "Rent cost escalation for Bengaluru-based operations"
+      ],
+      "cultural_notes": "Bengaluru tech founders are often well-networked. Warm introduction preferred over cold outreach."
+    },
+    "Tamil Nadu": {
+      "deal_density_score": 72,
+      "primary_sectors": ["manufacturing_general", "manufacturing_precision", "services_b2b", "food_fmcg"],
+      "labour_law_complexity": "high",
+      "gst_enforcement_level": "medium",
+      "family_business_prevalence": "high",
+      "notable_hubs": ["Chennai", "Coimbatore", "Madurai", "Tiruppur", "Salem"],
+      "avg_valuation_premium_pct": 2,
+      "state_specific_risks": [
+        "Tamil Nadu Factories Act \u2014 strict for manufacturing",
+        "MSME cluster peer valuation expectations",
+        "Auto OEM dependency (Chennai auto hub) \u2014 concentration risk"
+      ],
+      "cultural_notes": "Tamil business owners are conservative. Multiple meetings expected before trust is established."
+    },
+    "Delhi NCR": {
+      "deal_density_score": 88,
+      "primary_sectors": ["services_b2b", "d2c_ecommerce", "saas", "newsletter_media"],
+      "labour_law_complexity": "medium",
+      "gst_enforcement_level": "high",
+      "family_business_prevalence": "high",
+      "notable_hubs": ["Delhi", "Gurugram", "Noida", "Faridabad", "Ghaziabad"],
+      "avg_valuation_premium_pct": 5,
+      "state_specific_risks": [
+        "High commercial rent \u2014 built into cost structure",
+        "NCR pollution/manufacturing norms restrict certain sectors",
+        "Political sensitivity for regulated sectors",
+        "Delhi Shops Act compliance"
+      ],
+      "cultural_notes": "Delhi NCR business culture is transactional and fast. Decisions happen quickly but so do re-negotiations."
+    },
+    "Rajasthan": {
+      "deal_density_score": 52,
+      "primary_sectors": ["manufacturing_general", "food_fmcg", "healthcare_wellness"],
+      "labour_law_complexity": "low",
+      "gst_enforcement_level": "medium",
+      "family_business_prevalence": "very_high",
+      "notable_hubs": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Bhilwara"],
+      "avg_valuation_premium_pct": -5,
+      "state_specific_risks": [
+        "Very strong family patriarch culture \u2014 deal needs patriarch blessing",
+        "Export-dependent businesses (gems, handicrafts) have FX risk",
+        "Water scarcity impacts manufacturing costs"
+      ],
+      "cultural_notes": "Rajasthan Marwari community is business-savvy but deeply family-oriented. Don't underestimate relationship building."
+    },
+    "Telangana": {
+      "deal_density_score": 60,
+      "primary_sectors": ["saas", "services_b2b", "manufacturing_precision", "automation_ai_tools"],
+      "labour_law_complexity": "medium",
+      "gst_enforcement_level": "medium",
+      "family_business_prevalence": "medium",
+      "notable_hubs": ["Hyderabad", "Warangal", "Karimnagar"],
+      "avg_valuation_premium_pct": 3,
+      "state_specific_risks": [
+        "Hyderabad startup ecosystem has inflated expectations post-TCS/Infosys campus effect",
+        "Bifurcation issues (AP/Telangana) may create legacy regulatory complexities"
+      ],
+      "cultural_notes": "Hyderabad tech founders are generally pragmatic and open to discussion."
+    }
+  },
+
+  "msme_classification_2025": {
+    "micro": {
+      "investment_ceiling_cr": 2.5,
+      "turnover_ceiling_cr": 10,
+      "label": "Micro Enterprise (MSME Act 2025)"
+    },
+    "small": {
+      "investment_ceiling_cr": 25,
+      "turnover_ceiling_cr": 100,
+      "label": "Small Enterprise (MSME Act 2025)"
+    },
+    "medium": {
+      "investment_ceiling_cr": 125,
+      "turnover_ceiling_cr": 500,
+      "label": "Medium Enterprise (MSME Act 2025)"
+    }
+  },
+
+  "compliance_score_weights": {
+    "gst_registered": 20,
+    "gst_returns_current": 15,
+    "udyam_registered": 10,
+    "mca_filings_current": 15,
+    "no_pending_litigation": 20,
+    "clean_bank_statements": 10,
+    "audited_accounts": 10
+  },
+
+  "founder_nlp_keywords": {
+    "burnout_high": [
+      "tired", "exhausted", "drained", "burnt out", "burned out", "overwhelmed",
+      "can't do this anymore", "mentally exhausted", "just want out", "no energy",
+      "struggling", "this is killing me", "I'm done", "need a break forever",
+      "I can't keep going", "completely burnt out"
+    ],
+    "burnout_medium": [
+      "ready to move on", "new chapter", "moving on", "time for a change",
+      "exploring options", "considering exit", "thinking of selling",
+      "not my priority", "mentally checked out", "going through the motions"
+    ],
+    "conviction_high": [
+      "shipping", "growing fast", "momentum", "breaking records", "best month ever",
+      "excited about", "100% focused", "all in", "growing every month",
+      "just crossed", "new milestone", "customers love it", "strong pipeline"
+    ],
+    "conviction_medium": [
+      "steady", "consistent", "growing", "profitable", "stable", "good traction",
+      "holding strong", "customers stay", "low churn", "word of mouth"
+    ],
+    "family_exit": [
+      "family business", "second generation", "my son", "my daughter",
+      "succession", "my father started", "legacy", "inherited", "father's company",
+      "family pressure", "my brother", "my sister", "next generation",
+      "our family has run", "generations", "patriarch", "family holds",
+      "family doesn't want"
+    ],
+    "financial_distress": [
+      "cash flow issues", "need liquidity", "debt", "loan repayment", "creditors",
+      "financial pressure", "revenue declined", "customers leaving", "runway",
+      "bills piling", "working capital crunch", "overdraft", "NPL"
+    ],
+    "opportunity_exit": [
+      "new venture", "vc offer", "job offer", "pivoting", "new startup",
+      "bigger opportunity", "funded startup", "joining company", "exciting offer",
+      "new chapter", "new idea", "got an offer", "dream job"
+    ],
+    "india_specific_burnout": [
+      "log kya kahenge", "family pressure", "marriage pressure", "settled",
+      "ghar pe zyada time", "stability chahiye", "my parents want",
+      "settled abroad", "going to US", "Canada PR", "tired of fighting"
+    ]
+  },
+
+  "demo_seed_deals": [
+    {
+      "id": "seed-001",
+      "title": "Precision Engineering Components — Pune, Maharashtra",
+      "summary": "Maharashtra family-run precision CNC machine shop, Pune. Revenue ₹2.8Cr, EBITDA ₹35L (12.5% margin). Father-son business: father-founder (65), son managing operations wants exit to pursue tech startup. 18-year relationship with Tata Motors and Mahindra. Motivated seller, 3-month timeline stated. High India risk (family patriarch holds 70% stake). Verdict: WARM. Offered 1.8x revenue (below ask of 2.3x). Family dynamics elevated handover risk.",
+      "sector": "manufacturing_precision",
+      "state": "Maharashtra",
+      "revenue_cr": 2.8,
+      "ebitda_l": 35,
+      "verdict": "WARM",
+      "motivation": "family_exit + opportunity_exit",
+      "conviction_score": 6.8,
+      "burnout_score": 5.2,
+      "india_risk": 7.1,
+      "deal_outcome": "In negotiation"
+    },
+    {
+      "id": "seed-002",
+      "title": "BillZap — GST Invoice SaaS, Pune",
+      "summary": "India B2B SaaS for GST invoicing. ₹2.66L MRR, ~340 SMB customers, 87% margins. Solo founder (IIT Roorkee), accepted fintech Head of Product role. Listing age: 9 days. GST registered, PVT LTD. Motivated seller — opportunity exit, not distress. Clean transition possible. Razorpay PG requires new entity setup. Verdict: HOT. Conviction 8.4. Recommended outreach sent on Day 1.",
+      "sector": "saas",
+      "state": "Maharashtra",
+      "revenue_cr": 0.32,
+      "ebitda_l": 22,
+      "verdict": "HOT",
+      "motivation": "opportunity_exit",
+      "conviction_score": 8.4,
+      "burnout_score": 4.1,
+      "india_risk": 3.8,
+      "deal_outcome": "Outreach sent — awaiting reply"
+    },
+    {
+      "id": "seed-003",
+      "title": "Ahmedabad Textiles Export SME — Gujarat",
+      "summary": "Gujarat family textile business (Surat cluster), export-focused, 2nd generation. Revenue ₹6.5Cr, EBITDA ₹55L (8.5% margin). Founder (son) wants to exit; father patriarch holds 51% and is reluctant. Very high family dynamics risk. GST compliant, Udyam registered. Price expectation: 6x EBITDA = ₹3.3Cr — reasonable. Risk: patriarch not aligned — deal-killer risk flagged. Verdict: PASS (patriarch alignment needed before re-engaging).",
+      "sector": "manufacturing_general",
+      "state": "Gujarat",
+      "revenue_cr": 6.5,
+      "ebitda_l": 55,
+      "verdict": "PASS",
+      "motivation": "opportunity_exit",
+      "conviction_score": 3.2,
+      "burnout_score": 6.5,
+      "india_risk": 9.1,
+      "deal_outcome": "Passed — patriarch not aligned"
+    },
+    {
+      "id": "seed-004",
+      "title": "StartupPulse Newsletter — Bengaluru, Karnataka",
+      "summary": "B2B India startup newsletter, Bengaluru. 12k subscribers, 48% open rate, ₹90k MRR from 3 recurring sponsors. Solo founder (ex-journalist) accepting VC staff role. Non-GST registered (individual). Mailchimp + website fully transferable. Brand is publication-first, not founder-first — clean handover possible. Conviction: 8.0. Asked ₹26.66L (2.5x ARR). Verdict: HOT — low India risk, motivated seller, brand-portable.",
+      "sector": "newsletter_media",
+      "state": "Karnataka",
+      "revenue_cr": 0.108,
+      "ebitda_l": 6.5,
+      "verdict": "HOT",
+      "motivation": "opportunity_exit",
+      "conviction_score": 8.0,
+      "burnout_score": 3.8,
+      "india_risk": 2.9,
+      "deal_outcome": "Term sheet issued"
+    },
+    {
+      "id": "seed-005",
+      "title": "D2C Skincare Brand — Mumbai, Maharashtra",
+      "summary": "Mumbai D2C natural skincare brand, couple-run. Revenue ₹3.2Cr, EBITDA ₹45L (14% margin). Husband pivoting to corp job abroad (US relocation); wife wants stability. 60% marketplace (Nykaa/Amazon), 40% DTC website. High return rate (22%) is a concern. FSSAI compliant, GST clean. Brand has moderate portability — Instagram-native, 48k followers. Conviction: 6.2. India risk: 5.8. Verdict: WARM — marketplace dependency and return rates need DD.",
+      "sector": "d2c_ecommerce",
+      "state": "Maharashtra",
+      "revenue_cr": 3.2,
+      "ebitda_l": 45,
+      "verdict": "WARM",
+      "motivation": "opportunity_exit + burnout_medium",
+      "conviction_score": 6.2,
+      "burnout_score": 5.5,
+      "india_risk": 5.8,
+      "deal_outcome": "In diligence"
+    }
+  ],
+
+  "sample_voice_transcript": "Interviewer: So tell me about the business — how long have you been running it?\n\nFounder: We have been running for about 12 years now. My father started it in 2012 — precision engineering parts, mainly for the auto sector. I joined after my MBA about 5 years back. We are doing about 4 crore in revenue now, margins are decent, somewhere around 14 percent.\n\nInterviewer: And why are you looking to exit?\n\nFounder: Honestly? I have two younger brothers and they are not interested in the business at all. They are both in IT jobs in Pune. My father is getting older — he is 68 — and I am the one running everything. But I want to do something in the tech space. I have this SaaS idea I have been sitting on for almost 2 years now. I just cannot do both. The shop needs full attention.\n\nInterviewer: What is your timeline?\n\nFounder: Ideally within 6 months? We are not in financial trouble or anything. Revenue is stable, we have great relationships with Tata Motors and Mahindra — they have been with us for over 8 years. But I want to move fast. If someone gives me a fair price, I will take it. I am not looking for the absolute maximum — I just want closure and to move on with my life.\n\nInterviewer: Any other stakeholders involved in the decision?\n\nFounder: My father holds 70 percent and I have 30. He is actually supportive of the sale — he is tired too. He says he built this for the next generation, but if the next generation doesn't want it, better to sell to someone who does. So you would need to sit with both of us, but we are aligned. My brothers have no stake.\n\nInterviewer: What price range are you thinking?\n\nFounder: We have not done a formal valuation. Based on what I have read online — maybe 6 to 7 times EBITDA? Our EBITDA is roughly 56 lakhs. So I am thinking somewhere between 3 to 4 crore. I am flexible honestly. If the right buyer comes along and they are genuine, I would rather close at 3 crore and be done than wait 2 years for 4 crore."
+}
