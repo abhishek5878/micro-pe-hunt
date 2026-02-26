@@ -1829,9 +1829,10 @@ with t_hunt:
                     st.success("Saved")
 
         # Apply via button or via query param (apply_saved)
-        params = st.experimental_get_query_params()
-        if params.get("apply_saved") and st.session_state["saved_searches"]:
-            name_to_apply = params.get("apply_saved")[0]
+        # st.query_params is a dict-like; values are single strings in modern Streamlit
+        _apply_saved_param = st.query_params.get("apply_saved", None)
+        if _apply_saved_param and st.session_state["saved_searches"]:
+            name_to_apply = _apply_saved_param if isinstance(_apply_saved_param, str) else _apply_saved_param[0]
             if name_to_apply in st.session_state["saved_searches"]:
                 cfg = st.session_state["saved_searches"][name_to_apply]
                 st.session_state["hunt_use_acq_auth"] = cfg["use_acq_auth"]
@@ -1845,8 +1846,8 @@ with t_hunt:
                 st.session_state["hunt_min_score"] = cfg["min_score"]
                 st.session_state["hunt_india_only"] = cfg["india_only"]
                 # clear param and rerun
-                st.experimental_set_query_params()
-                st.experimental_rerun()
+                st.query_params.clear()
+                st.rerun()
 
         if selected_saved and selected_saved != "<none>":
             if st.button("Apply saved"):
@@ -1862,7 +1863,7 @@ with t_hunt:
                 st.session_state["hunt_max_price"] = cfg["max_price"]
                 st.session_state["hunt_min_score"] = cfg["min_score"]
                 st.session_state["hunt_india_only"] = cfg["india_only"]
-                st.experimental_rerun()
+                st.rerun()
 
         # List saved searches with rename/delete controls
         if st.session_state["saved_searches"]:
@@ -1877,7 +1878,7 @@ with t_hunt:
                 with c3:
                     if st.button("Delete", key=f"delete_{name}"):
                         st.session_state["saved_searches"].pop(name, None)
-                        st.experimental_rerun()
+                        st.rerun()
 
             # Rename UI
             if st.session_state.get("rename_target"):
@@ -1889,10 +1890,10 @@ with t_hunt:
                         if new_name and new_name != target:
                             st.session_state["saved_searches"][new_name] = st.session_state["saved_searches"].pop(target)
                         st.session_state["rename_target"] = None
-                        st.experimental_rerun()
+                        st.rerun()
                     if st.button("Cancel Rename"):
                         st.session_state["rename_target"] = None
-                        st.experimental_rerun()
+                        st.rerun()
 
         if st.button("Clear saved searches"):
             st.session_state["saved_searches"] = {}
@@ -2018,7 +2019,7 @@ with t_hunt:
             # visible select button for mouse users
             if st.button("Select", key=f"select_{deal.get('listing_id') or (deal.get('url') or '')[-12:]}"):
                 st.session_state["selected_deal"] = deal
-                st.experimental_rerun()
+                st.rerun()
 
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -2120,7 +2121,7 @@ if selected:
 
     if st.sidebar.button("Clear selection"):
         st.session_state.pop("selected_deal", None)
-        st.experimental_rerun()
+        st.rerun()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Footer
