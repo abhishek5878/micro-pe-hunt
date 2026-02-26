@@ -10,6 +10,7 @@ Not financial advice. India regulatory signals are simulated, not from actual MC
 
 # ── streamlit page config must be FIRST ──────────────────────────────────────
 import streamlit as st
+from pathlib import Path
 
 st.set_page_config(
     page_title="Pocket Fund | Acquisition Intelligence",
@@ -18,6 +19,16 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Optional favicon injection for hosts that request /favicon.ico
+favicon_path = Path("static/favicon.ico")
+if favicon_path.exists():
+    st.markdown(
+        """
+        <link rel="shortcut icon" href="/static/favicon.ico">
+        """,
+        unsafe_allow_html=True,
+    )
+
 import json
 import logging
 import os
@@ -25,7 +36,6 @@ import re
 import time
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -1888,63 +1898,7 @@ with t_hunt:
             st.session_state["saved_searches"] = {}
             st.success("Cleared saved searches")
 
-        # Keyboard hint for saved searches
-        if st.session_state["saved_searches"]:
-            try:
-                import streamlit.components.v1 as components
-                names = list(st.session_state["saved_searches"].keys())
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
+        # Keyboard hint for saved searches (disabled to keep deployment simple)
             except Exception:
                 pass
             except Exception:
