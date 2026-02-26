@@ -24,3 +24,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Playwright browser binaries (installed at runtime on cloud)
+playwright_browsers/
+ms-playwright/

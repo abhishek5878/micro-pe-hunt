@@ -1898,22 +1898,7 @@ with t_hunt:
             st.session_state["saved_searches"] = {}
             st.success("Cleared saved searches")
 
-        # Keyboard hint for saved searches (disabled to keep deployment simple)
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
-            except Exception:
-                pass
 
-            try:
-                import streamlit.components.v1 as components
-                import json
-                names = list(st.session_state["saved_searches"].keys())
-                names_json = json.dumps(names)
-                js = f\"\"\"\n                <script>\n                (function(){{\n                  const names = {names_json};\n                  document.addEventListener('keydown', function(e){{\n                    const n = parseInt(e.key);\n                    if (!isNaN(n) && n>=1 && n<=names.length) {{\n                      const nm = names[n-1];\n                      window.location.href = '?apply_saved=' + encodeURIComponent(nm);\n                    }}\n                  }});\n                }})();\n                </script>\n                \"\"\"\n                components.html(js, height=10)\n            except Exception:\n                pass\n+\n+    # Main column: hunt button + results\n+    with main_col:
         hunt_btn = st.button("🎯  HUNT LIVE DEALS", type="primary", use_container_width=True)
 
     if hunt_btn:

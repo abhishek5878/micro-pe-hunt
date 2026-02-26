@@ -14,7 +14,7 @@ groq>=0.9.0
 # ── Vector Memory ─────────────────────────────────────────────
 faiss-cpu>=1.7.4
 sentence-transformers>=2.7.0
-scikit-learn>=1.4.0          # TF-IDF fallback if HuggingFace unavailable
+scikit-learn>=1.4.0
 numpy>=1.26.0
 
 # ── Founder NLP ───────────────────────────────────────────────
@@ -26,6 +26,7 @@ feedparser>=6.0.11
 beautifulsoup4>=4.12.3
 requests>=2.32.0
 lxml>=5.2.0
+praw>=7.7.0
 
 # ── Utilities ─────────────────────────────────────────────────
 python-dotenv>=1.0.1
