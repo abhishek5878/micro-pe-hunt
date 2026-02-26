@@ -369,7 +369,7 @@ class LegalRegAgent:
         """Generate regulatory narrative. LLM if available, else template."""
 
         if self.llm:
-            from langchain.schema import HumanMessage, SystemMessage
+            from langchain_core.messages import HumanMessage, SystemMessage
             system = (
                 "You are an India M&A legal advisor specializing in MSME acquisitions. "
                 "Write in bullet-point IC memo style. Max 200 words. Be practical and specific."

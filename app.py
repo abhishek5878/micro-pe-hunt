@@ -292,9 +292,10 @@ def _build_llm(provider: str, api_key: str, model: str):
     try:
         if provider == "openai":
             from langchain_openai import ChatOpenAI
+            from langchain_core.messages import HumanMessage
+
             llm = ChatOpenAI(model=model, api_key=api_key, temperature=0.3)
             # Warm-up ping to verify key is valid
-            from langchain.schema import HumanMessage
             llm.invoke([HumanMessage(content="ping")])
             return llm
         elif provider == "groq":

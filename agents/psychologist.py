@@ -402,7 +402,7 @@ class FounderPsychologist:
         fast_close = psych_data["fast_close_signal"]
 
         if self.llm:
-            from langchain.schema import HumanMessage, SystemMessage
+            from langchain_core.messages import HumanMessage, SystemMessage
             system = (
                 "You are a behavioral psychologist advising a micro-PE buyer. "
                 "Write in crisp bullet-point style. Max 200 words. Be specific and actionable."

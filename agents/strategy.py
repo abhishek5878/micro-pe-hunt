@@ -275,7 +275,7 @@ class StrategyAgent:
             base_message += "\n\nP.S. I understand this may be a family business — I'm happy to have the conversation at whatever pace works for everyone involved."
 
         if self.llm:
-            from langchain.schema import HumanMessage, SystemMessage
+            from langchain_core.messages import HumanMessage, SystemMessage
             system = (
                 f"You are {self.buyer_name}, an India micro-PE operator. "
                 "Write outreach in YOUR voice — casual, direct, no corporate language. "
@@ -456,7 +456,7 @@ Rules:
         motivation_profile = psych_data.get("motivation_profile", {})
 
         if self.llm:
-            from langchain.schema import HumanMessage, SystemMessage
+            from langchain_core.messages import HumanMessage, SystemMessage
             system = (
                 "You are Dev Shah, micro-PE operator at Pocket Fund. "
                 "Write a crisp, actionable acquisition strategy note. IC memo style. Max 250 words."

@@ -287,7 +287,7 @@ class ValuationAnalyst:
         memory_str = "\n".join(memory_notes) if memory_notes else "No comparable deals in memory."
 
         if self.llm:
-            from langchain.schema import HumanMessage, SystemMessage
+            from langchain_core.messages import HumanMessage, SystemMessage
             system = (
                 "You are a senior India micro-PE acquisition analyst at Pocket Fund. "
                 "Write in precise, IC-memo style. Max 250 words. No fluff. "
